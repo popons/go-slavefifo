@@ -42,12 +42,13 @@ func open(vid,pid int , primary bool) *Error
 {
     var r int;
     var e *Error;
+    secondary := !primary;
 
     usbdev = libusb.Open(vid,pid);
 
     if usbdev == nil { return &Error{fmt.Sprintf("VID:%04X PID%04X can not open or not found. ",vid,pid)};}
 
-    if !primary
+    if secondary
     {
         r = usbdev.Configuration(1);
         if r!=0 { return &Error{fmt.Sprintf(" Configuration error %d [%s]",r,usbdev.LastError())}; }
@@ -64,7 +65,6 @@ func open(vid,pid int , primary bool) *Error
         for i:=0;i<len(prog_data); i+= 4096
         {
             r := usbdev.ControlMsg(libusb.USB_TYPE_VENDOR,0xa0,i,0,prog_data[i:i+4096]);
-            fmt.Printf("ControlMsg() return %d\n",r);
             if r!=4096 { return &Error{fmt.Sprintf(" Programming error %d [%s]",r,usbdev.LastError())}; }
         }
 
@@ -123,7 +123,6 @@ func reset(device *libusb.Device,bit byte) *Error
 {
     var dat = []byte{bit};
     r := device.ControlMsg(libusb.USB_TYPE_VENDOR,0xa0,0xe600,0,dat);
-    fmt.Printf("usb_control_msg() return %d\n",r);
     if r!=1
     {
         return &Error{ fmt.Sprintf("reset to %d ControlMsg return %d in reset.",bit,r) }
@@ -131,11 +130,11 @@ func reset(device *libusb.Device,bit byte) *Error
     return nil;
 }
 
-func Write(ep int,dat []uint32) *Error
+func Write (ep int,dat []uint32) *Error
 {
     return nil;
 }
-func Read(ep int,dat []uint32) *Error
+func Read  (ep int,dat []uint32) *Error
 {
     return nil;
 }
